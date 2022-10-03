@@ -19,19 +19,22 @@ public class RollerAgent : Agent
             this.rBody.angularVelocity = Vector3.zero;
             this.rBody.velocity = Vector3.zero;
             this.transform.position = new Vector3( 0, 0.5f, 0);
+            // Rotate agent randomly
+            this.transform.rotation = Quaternion.Euler(Vector3.up * Random.Range(0f, 360f));
         }
 
         // Move the target to a new spot
-        Target.position = new Vector3(Random.value * 8 - 4,
-                                      0.5f,
-                                      Random.value * 8 - 4);
+        Target.position = new Vector3(Random.value * 8 - 4, 0.5f, Random.value * 8 - 4);
     }
 
     public override void CollectObservations()
     {
         // Target and Agent positions
-        AddVectorObs(Target.position);
-        AddVectorObs(this.transform.position);
+        // AddVectorObs(Target.position);  // We don't want the agent to know the target position anymore
+        // AddVectorObs(this.transform.position);
+
+        // Agent rotation
+        // AddVectorObs(this.transform.rotation);
 
         // Agent velocity
         AddVectorObs(rBody.velocity.x);
@@ -41,15 +44,18 @@ public class RollerAgent : Agent
     public float speed = 10;
     public override void AgentAction(float[] vectorAction)
     {
-        // Actions, size = 2
-        Vector3 controlSignal = Vector3.zero;
-        controlSignal.x = vectorAction[0];
-        controlSignal.z = vectorAction[1];
-        rBody.AddForce(controlSignal * speed);
+        // Actions, size = 2 (first is for movement, second for rotation)
+
+        // Move
+        Vector3 controlSignalMovement = this.transform.forward * vectorAction[0]; // Move forward only
+        rBody.AddForce(controlSignalMovement * speed);
+
+        // Turn
+        Vector3 controlSignalRotation = this.transform.up * vectorAction[1];
+        rBody.AddTorque(controlSignalRotation);
 
         // Rewards
-        float distanceToTarget = Vector3.Distance(this.transform.position,
-                                                Target.position);
+        float distanceToTarget = Vector3.Distance(this.transform.position, Target.position);
 
         // Reached target
         if (distanceToTarget < 1.42f)
@@ -61,6 +67,7 @@ public class RollerAgent : Agent
         // Fell off platform
         if (this.transform.position.y < 0)
         {
+            SetReward(-1.0f);  // Negative reward  if it falls down the platform
             Done();
         }
 
