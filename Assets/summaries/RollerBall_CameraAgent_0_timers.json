@@ -1,0 +1,215 @@
+{
+  "name": "root",
+  "gauges": [
+    {
+      "name": "RollerBallBrain.mean_reward",
+      "value": -0.2482758620689655,
+      "min": -0.4476987447698745,
+      "max": -0.2482758620689655,
+      "count": 9
+    }
+  ],
+  "total": 1271.3090376,
+  "count": 1,
+  "self": 37.654752599998574,
+  "children": [
+    {
+      "name": "TrainerController.advance",
+      "total": 1233.6542850000014,
+      "count": 101681,
+      "self": 1.7184360000219385,
+      "children": [
+        {
+          "name": "env_step",
+          "total": 1156.0576145999828,
+          "count": 101681,
+          "self": 1055.7274219999945,
+          "children": [
+            {
+              "name": "SubprocessEnvManager._take_step",
+              "total": 98.38665629999738,
+              "count": 101681,
+              "self": 3.5158187999925445,
+              "children": [
+                {
+                  "name": "PPOPolicy.evaluate",
+                  "total": 94.87083750000484,
+                  "count": 101681,
+                  "self": 94.87083750000484
+                }
+              ]
+            },
+            {
+              "name": "workers",
+              "total": 1.943536299990896,
+              "count": 101680,
+              "self": 0.0,
+              "children": [
+                {
+                  "name": "worker_root",
+                  "total": 1267.4737109999655,
+                  "count": 101680,
+                  "is_parallel": true,
+                  "self": 313.4912527999752,
+                  "children": [
+                    {
+                      "name": "batched_step_result_from_proto",
+                      "total": 0.010362399999999994,
+                      "count": 1,
+                      "is_parallel": true,
+                      "self": 0.0001029999999992981,
+                      "children": [
+                        {
+                          "name": "_process_visual_observation",
+                          "total": 0.010178600000000593,
+                          "count": 1,
+                          "is_parallel": true,
+                          "self": 4.8600000000398325e-05,
+                          "children": [
+                            {
+                              "name": "observation_to_np_array",
+                              "total": 0.010130000000000194,
+                              "count": 1,
+                              "is_parallel": true,
+                              "self": 3.119999999956491e-05,
+                              "children": [
+                                {
+                                  "name": "process_pixels",
+                                  "total": 0.01009880000000063,
+                                  "count": 1,
+                                  "is_parallel": true,
+                                  "self": 0.0004243000000005992,
+                                  "children": [
+                                    {
+                                      "name": "image_decompress",
+                                      "total": 0.00967450000000003,
+                                      "count": 1,
+                                      "is_parallel": true,
+                                      "self": 0.00967450000000003
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "name": "_process_vector_observation",
+                          "total": 8.080000000010301e-05,
+                          "count": 1,
+                          "is_parallel": true,
+                          "self": 8.080000000010301e-05
+                        }
+                      ]
+                    },
+                    {
+                      "name": "UnityEnvironment.step",
+                      "total": 953.9720957999904,
+                      "count": 101680,
+                      "is_parallel": true,
+                      "self": 9.650522699992393,
+                      "children": [
+                        {
+                          "name": "UnityEnvironment._generate_step_input",
+                          "total": 6.091934700003364,
+                          "count": 101680,
+                          "is_parallel": true,
+                          "self": 6.091934700003364
+                        },
+                        {
+                          "name": "communicator.exchange",
+                          "total": 882.6457958000228,
+                          "count": 101680,
+                          "is_parallel": true,
+                          "self": 882.6457958000228
+                        },
+                        {
+                          "name": "batched_step_result_from_proto",
+                          "total": 55.58384259997189,
+                          "count": 101680,
+                          "is_parallel": true,
+                          "self": 7.448429599981033,
+                          "children": [
+                            {
+                              "name": "_process_visual_observation",
+                              "total": 41.76524049998754,
+                              "count": 101680,
+                              "is_parallel": true,
+                              "self": 2.5531735999677636,
+                              "children": [
+                                {
+                                  "name": "observation_to_np_array",
+                                  "total": 39.21206690001978,
+                                  "count": 101950,
+                                  "is_parallel": true,
+                                  "self": 2.5433825000137134,
+                                  "children": [
+                                    {
+                                      "name": "process_pixels",
+                                      "total": 36.668684400006065,
+                                      "count": 101950,
+                                      "is_parallel": true,
+                                      "self": 15.525001800005207,
+                                      "children": [
+                                        {
+                                          "name": "image_decompress",
+                                          "total": 21.143682600000858,
+                                          "count": 101950,
+                                          "is_parallel": true,
+                                          "self": 21.143682600000858
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "name": "_process_vector_observation",
+                              "total": 6.370172500003314,
+                              "count": 101680,
+                              "is_parallel": true,
+                              "self": 6.370172500003314
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "trainer_advance",
+          "total": 75.87823439999681,
+          "count": 101680,
+          "self": 2.9547883000012973,
+          "children": [
+            {
+              "name": "process_trajectory",
+              "total": 12.231691699999047,
+              "count": 101680,
+              "self": 12.231691699999047
+            },
+            {
+              "name": "_update_policy",
+              "total": 60.69175439999647,
+              "count": 1790,
+              "self": 9.771869599991135,
+              "children": [
+                {
+                  "name": "PPOPolicy.update",
+                  "total": 50.919884800005335,
+                  "count": 16506,
+                  "self": 50.919884800005335
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
