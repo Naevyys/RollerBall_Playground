@@ -74,4 +74,6 @@ crashlytics-build.properties
 
 # My additions
 Python_scripts/Colab_scripts
-Python_scripts/dlcliverender.py
+Python_scripts/Colab_scripts*
+Python_scripts/dlcliverender*
+Python_scripts/__pycache__
