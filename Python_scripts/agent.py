@@ -24,12 +24,12 @@ class Agent:
         if self.vision_decoder is None:
             return np.random.rand(action_size).reshape((1,-1))
 
-        observations_formatted = torch.tensor(observations).permute(2, 0, 1)  # Convert to tensor, move channels to first dim
+        observations_formatted = torch.tensor(observations).permute(2, 0, 1).float()  # Convert to tensor, move channels to first dim
         predictions = self.vision_decoder(observations_formatted)
         # Make additional computations here in order to cover entire range required (e.g. [-1, 1]) by using the predictions between [0, 1]
         return predictions.detach().numpy()
 
-    def update_encoder(self):
+    def update_decoder(self):
         # Do a gradient step to update the cnn
         # Might be better to do that from the trainer directly
         raise NotImplementedError

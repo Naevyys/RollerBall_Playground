@@ -1,6 +1,8 @@
+from tokenize import Double
 from mlagents_envs.environment import UnityEnvironment
 from agent import Agent
 from cnn import CNN
+import numpy as np
 
 class Trainer:
     def __init__(self, env_file_path: str, side_channels: list = []) -> None:
@@ -40,6 +42,7 @@ class Trainer:
             batch_result = self.env.get_step_result(agent.group)
             step_result = batch_result.get_agent_step_result(agent.num)  # When agent gets reset, its ID changes...
             actions = agent.get_action(step_result.obs[0])
+            print(actions)
             self.env.set_actions(agent.group, actions)
             # TODO: Check what these groups are, cause from Tom's code, it looks like I have to pass agent.group here, does that mean we make predictions for an entire group at once?
             #       If so, I need to remove that second loop/motify some parts of my code
@@ -51,7 +54,7 @@ class Trainer:
             # Collect result of step (rewards etc...)
             next_step_result = self.env.get_step_result(agent.group)
             reward = next_step_result.reward
-            print(reward)  # To have some feedback for now
+            #print(reward)  # To have some feedback for now
             
             if not self.terminal:  # If False, set to terminal state of current agent. If already True, no need for change.
                 self.terminal = next_step_result.done[agent.index]
