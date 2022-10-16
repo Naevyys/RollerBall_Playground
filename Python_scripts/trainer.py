@@ -1,5 +1,6 @@
 from mlagents_envs.environment import UnityEnvironment
 from agent import Agent
+from cnn import CNN
 
 class Trainer:
     def __init__(self, env_file_path: str, side_channels: list = []) -> None:
@@ -9,11 +10,17 @@ class Trainer:
         self.env.reset()
         self.terminal = False
 
+        # TODO: Get all observation and action shape information directly from the environment
+        visual_field_shape = (20, 32, 1)
+        actions_size = 2
+        encoding_size = 64  # Arbitrary value, might need tuning here
+
         # Initialize agents
         self.agent_groups = []  # Each group has a single network/brain. Therefore, I consider each group as a single agent
         for group in self.env.get_agent_groups():
+            vision_decoder = CNN(visual_field_shape, encoding_size, actions_size)
             specs = self.env.get_agent_group_spec(group)
-            self.agent_groups.append(Agent(0, group, specs))
+            self.agent_groups.append(Agent(0, group, specs, vision_decoder))
 
     def reset_environment(self):
         '''
@@ -32,7 +39,7 @@ class Trainer:
         for agent in self.agent_groups:  # I should only have one
             batch_result = self.env.get_step_result(agent.group)
             step_result = batch_result.get_agent_step_result(agent.num)  # When agent gets reset, its ID changes...
-            actions = agent.get_action(step_result)
+            actions = agent.get_action(step_result.obs[0])
             self.env.set_actions(agent.group, actions)
             # TODO: Check what these groups are, cause from Tom's code, it looks like I have to pass agent.group here, does that mean we make predictions for an entire group at once?
             #       If so, I need to remove that second loop/motify some parts of my code
