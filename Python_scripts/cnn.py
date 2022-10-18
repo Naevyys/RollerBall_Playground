@@ -1,16 +1,9 @@
 from typing import Tuple
 import torch
-from torch.nn import Conv2d, ReLU, Linear, Module, Sigmoid
+from torch.nn import Conv2d, ReLU, Linear, Module
 from torch.nn.functional import tanh, sigmoid, softmax, relu
 from math import floor
 import numpy as np
-
-
-# Use softmax or sigmoid? Softmax might be more appropriate if we want the agent to either turn or move forward, while sigmoid is better if we want the agent to do both
-# Check range of predictions needed to turn in both directions & move only forward
-#   Note: Moving only forward is currently enforced in RollerAgent.cs, but it would be cool to enforce it in the predictions of the CNN directly instead, then we can also
-#   change that later in case we want the agent to be able to move backwards too
-#   For now, I will be using sigmoid
 
 
 class FinalActivation(Module):
