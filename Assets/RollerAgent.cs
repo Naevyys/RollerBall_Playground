@@ -6,12 +6,18 @@ using MLAgents;
 public class RollerAgent : Agent
 {
     Rigidbody rBody;
+    private Vector3 initial_position;
+    private Quaternion initial_rotation;
+    private Vector3 target_initial_position;
     public Transform Target;
-    private float speed = 1f;
+    private float speed = 5f;
     private float rotationScalingFactor = 90f;  //f means float
 
     void Start () {
         rBody = GetComponent<Rigidbody>();
+        initial_position = this.transform.position;
+        initial_rotation = this.transform.rotation;
+        target_initial_position = Target.transform.position;
     }
 
     public override void AgentReset()
@@ -20,12 +26,9 @@ public class RollerAgent : Agent
         this.rBody.angularVelocity = Vector3.zero;
         this.rBody.velocity = Vector3.zero;
 
-        // Move the target to a new spot
-        Target.position = new Vector3(Random.value * 8 - 4, 0.5f, Random.value * 8 - 4);
-        // Move agent back to center
-        this.transform.position = new Vector3( 0, 0.5f, 0);
-        // Rotate agent randomly
-        this.transform.rotation = Quaternion.Euler(Vector3.up * Random.Range(0f, 360f));
+        Target.position = target_initial_position;  // Reset target tp initial position
+        this.transform.position = initial_position;  // Reset agent to initial position
+        this.transform.rotation = initial_rotation;  // Reset agent to initial rotation
     }
 
     public override void CollectObservations()
