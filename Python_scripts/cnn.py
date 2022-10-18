@@ -1,7 +1,8 @@
 from typing import Tuple
 import torch
 from torch.nn import Conv2d, ReLU, Linear, Module
-from torch.nn.functional import tanh, sigmoid, softmax, relu
+from torch.nn.functional import softmax
+from torch import tanh, sigmoid, relu
 from math import floor
 import numpy as np
 
@@ -23,7 +24,7 @@ class FinalActivation(Module):
         out[0, self.tanh_pos] = tanh(input[0, self.tanh_pos])
         out[0, self.sigmoid_pos] = sigmoid(input[0, self.sigmoid_pos])
         out[0, self.relu_pos] = relu(input[0, self.relu_pos])
-        out[0, self.softmax_pos] = softmax(input[0, self.softmax_pos])
+        out[0, self.softmax_pos] = softmax(input[0, self.softmax_pos], dim=0)
         return out
 
 
