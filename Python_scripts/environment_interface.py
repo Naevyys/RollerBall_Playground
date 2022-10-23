@@ -73,7 +73,7 @@ class EnvironmentInterface:
         '''
         return self.agent_groups
 
-    def train(self, agent_index: int = 0, n_training_steps: int=10, lr: float=0.001, n_epochs: int=3, batch_size: int=32, n_new_exp: int=int(1e4), buffer_size:int=int(1e5), epsilon=0.1):
+    def train(self, agent_index: int = 0, n_training_steps: int=10, lr: float=0.001, n_epochs: int=3, batch_size: int=128, n_new_exp: int=int(1e4), buffer_size:int=int(1e5), epsilon=0.1):
         agent = self.agent_groups[agent_index]  # Train a specific agent group, by default the first one.
         optimizer = Adam(agent.vision_decoder.parameters(), lr=lr)  # Initialize optimizer
         buffer: Buffer() = []  # Initialize buffer of experiments

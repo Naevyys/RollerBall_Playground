@@ -1,5 +1,6 @@
 from mlagents_envs.environment import UnityEnvironment
 import numpy as np
+import torch
 from experience import Experience, Trajectory, Buffer
 from cnn import CNN
 from agent import Agent
@@ -51,5 +52,28 @@ class Trainer:
         return buffer, np.sum(rewards) / len(buffer)
     
     @staticmethod
-    def update_q_network():  # Training happens here
-        raise NotImplementedError
+    def update_q_network(q_net: CNN, optimizer: torch.optim, buffer: Buffer, n_epochs: int, batch_size: int, gamma: float):  # Training happens here
+
+        np.random.shuffle(buffer)  # Shuffle experiments in buffer
+        batches = [buffer[batch_size * start: batch_size * (start + 1)] for start in range(int(len(buffer) / batch_size))]  # Partition in batches
+        
+        for _ in range(n_epochs):
+            for batch in batches:
+                # Create batch tensors for observations, reward, done, action and next observations
+                obs = torch.from_numpy(np.stack([ex.obs for ex in batch]))
+                reward = torch.from_numpy(np.array([ex.reward for ex in batch], dtype=np.float32).reshape(-1, 1))
+                done = torch.from_numpy(np.array([ex.done for ex in batch], dtype=np.float32).reshape(-1, 1))
+                action = torch.from_numpy(np.stack([ex.action for ex in batch]))
+                next_obs = torch.from_numpy(np.stack([ex.next_obs for ex in batch]))
+
+                target = ...  # TODO: Compute target vector using Bellman equation
+                prediction = ...  # TODO: Compute prediction
+
+                # Compute loss
+                criterion = torch.nn.MSELoss()
+                loss = criterion(prediction, target)
+
+                # Perform the backpropagation
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
