@@ -51,10 +51,7 @@ class EnvironmentInterface:
             batch_result = self.env.get_step_result(agent.group)
             step_result = batch_result.get_agent_step_result(agent.num)  # When agent gets reset, its ID changes...
             actions = agent.get_action(step_result.obs[0])
-            #print(actions)
             self.env.set_actions(agent.group, actions)
-            # TODO: Check what these groups are, cause from Tom's code, it looks like I have to pass agent.group here, does that mean we make predictions for an entire group at once?
-            #       If so, I need to remove that second loop/motify some parts of my code
         
         # Take step in environment
         self.env.step()
@@ -63,7 +60,6 @@ class EnvironmentInterface:
             # Collect result of step (rewards etc...)
             next_step_result = self.env.get_step_result(agent.group)
             reward = next_step_result.reward
-            #print(reward)  # To have some feedback for now
             
             if not self.terminal:  # If False, set to terminal state of current agent. If already True, no need for change.
                 self.terminal = next_step_result.done[agent.index]
@@ -77,23 +73,22 @@ class EnvironmentInterface:
         '''
         return self.agent_groups
 
-    def train(self, n_training_steps: int=10, lr: float=0.001, n_epochs: int=3, batch_size: int=32, n_new_exp: int=int(1e4),buffer_size:int=int(1e5)):
-        # Train every agent one after the other, probably there is a more efficient way but I just have a single agent anyway...
-        for agent in self.agent_groups:
-            optimizer = Adam(agent.vision_decoder.parameters(), lr=lr)  # Initialize optimizer
-            buffer: Buffer() = []  # Initialize buffer of experiments
-            cumulative_rewards: List[float] = []  # Initialize list of cumulative rewards
-            for n in range(n_training_steps):  # Loop for n_training_steps
-                new_exp, _ = Trainer.generate_trajectories(...)  # Generate new experiments using trainer  # TODO
-                if len(buffer) > (buffer_size + n_new_exp):
-                    keep = np.random.choice(len(buffer), buffer_size - n_new_exp)  # Select (buffer_size - n_new_exp) experiments from buffer to keep
-                    buffer = buffer[keep]
-                buffer.extend(new_exp)  # Add new ones to buffer
-                # Update network using trainer
-                # Run new experiments and compute mean cumulative reward
-                # Append cumulative reward to list of cumulative rewards
-                # Print some feedback
-                raise NotImplementedError
+    def train(self, agent_index: int = 0, n_training_steps: int=10, lr: float=0.001, n_epochs: int=3, batch_size: int=32, n_new_exp: int=int(1e4), buffer_size:int=int(1e5), epsilon=0.1):
+        agent = self.agent_groups[agent_index]  # Train a specific agent group, by default the first one.
+        optimizer = Adam(agent.vision_decoder.parameters(), lr=lr)  # Initialize optimizer
+        buffer: Buffer() = []  # Initialize buffer of experiments
+        cumulative_rewards: List[float] = []  # Initialize list of cumulative rewards
+
+        for n in range(n_training_steps):  # Loop for n_training_steps
+            new_exp, _ = Trainer.generate_trajectories(self.env, agent, n_new_exp, epsilon)  # Generate new experiments using trainer
+            if len(buffer) > (buffer_size - n_new_exp):
+                keep = np.random.choice(len(buffer), buffer_size - n_new_exp)  # Select (buffer_size - n_new_exp) experiments from buffer to keep
+                buffer = buffer[keep]
+            buffer.extend(new_exp)  # Add new ones to buffer
+            Trainer.update_q_network(...)  # Update network using trainer  # TODO
+            _, mean_reward = Trainer.generate_trajectories(self.env, agent, 100, 0)  # Run new experiments and compute mean cumulative reward
+            cumulative_rewards.append(mean_reward)  # Append cumulative reward to list of cumulative rewards
+            print("Training step ", n+1, "\treward ", mean_reward)  # Print some feedback
 
     def run_steps(self, num_steps = 10):
         assert self.env is not None, "Env is not loaded, call load_env() first."
