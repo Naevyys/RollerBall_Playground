@@ -1,6 +1,6 @@
 from mlagents_envs.environment import UnityEnvironment
 from agent import Agent
-from cnn import CNN
+from models import ActorCritic, ActorCriticLoss
 from trainer import Trainer
 from experience import Buffer
 from typing import List
@@ -26,7 +26,7 @@ class EnvironmentInterface:
         # Initialize agents
         self.agent_groups = []  # Each group has a single network/brain. Therefore, I consider each group as a single agent
         for group in self.env.get_agent_groups():
-            vision_decoder = CNN(visual_field_shape, encoding_size, actions_size)
+            vision_decoder = ActorCritic(visual_field_shape, encoding_size, actions_size)
             specs = self.env.get_agent_group_spec(group)
             self.agent_groups.append(Agent(0, group, specs, vision_decoder))
 
@@ -73,9 +73,10 @@ class EnvironmentInterface:
         '''
         return self.agent_groups
 
-    def train(self, agent_index: int = 0, n_training_steps: int=10, lr: float=0.001, n_epochs: int=3, batch_size: int=128, n_new_exp: int=int(1e4), buffer_size:int=int(1e5), epsilon=0.1):
+    def train(self, agent_index: int = 0, n_training_steps: int=10, lr: float=0.001, n_epochs: int=3, batch_size: int=32, gamma: float=0.9, n_new_exp: int=int(1e2), buffer_size:int=int(1e3), epsilon=0.1):  # TODO: increase default values for n_new_exp and buffer_size, I set them low now for testing
         agent = self.agent_groups[agent_index]  # Train a specific agent group, by default the first one.
         optimizer = Adam(agent.vision_decoder.parameters(), lr=lr)  # Initialize optimizer
+        criterion = ActorCriticLoss()
         buffer: Buffer() = []  # Initialize buffer of experiments
         cumulative_rewards: List[float] = []  # Initialize list of cumulative rewards
 
@@ -85,7 +86,7 @@ class EnvironmentInterface:
                 keep = np.random.choice(len(buffer), buffer_size - n_new_exp)  # Select (buffer_size - n_new_exp) experiments from buffer to keep
                 buffer = buffer[keep]
             buffer.extend(new_exp)  # Add new ones to buffer
-            Trainer.update_q_network(...)  # Update network using trainer  # TODO
+            Trainer.update_network(agent.vision_decoder, optimizer, buffer, n_epochs, batch_size, gamma, criterion)  # Update network using trainer
             _, mean_reward = Trainer.generate_trajectories(self.env, agent, 100, 0)  # Run new experiments and compute mean cumulative reward
             cumulative_rewards.append(mean_reward)  # Append cumulative reward to list of cumulative rewards
             print("Training step ", n+1, "\treward ", mean_reward)  # Print some feedback

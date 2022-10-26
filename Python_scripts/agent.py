@@ -1,10 +1,10 @@
 import torch
 import numpy as np
-from cnn import CNN
+from models import ActorCritic
 
 
 class Agent:
-    def __init__(self, num: int, group, group_specs, vision_decoder: CNN = None) -> None:
+    def __init__(self, num: int, group, group_specs, vision_decoder: ActorCritic = None) -> None:
         '''
         Initialize the agent with identifiers and its vision decoder.
         '''
@@ -25,8 +25,9 @@ class Agent:
             return np.random.rand(action_size).reshape((1,-1))
 
         observations_formatted = torch.tensor(observations).permute(2, 0, 1).float()  # Convert to tensor, move channels to first dim
-        predictions = self.vision_decoder(observations_formatted)
-        return predictions.detach().numpy()
+        means_vec, vars_vec, _ = self.vision_decoder(observations_formatted)
+        actions = torch.normal(means_vec.detach(), torch.sqrt(vars_vec.detach()))  # Sample actions using means and stds
+        return actions.numpy()
     
     def increment_agent_num(self, amount = 1):
         '''

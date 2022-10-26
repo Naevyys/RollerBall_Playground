@@ -2,7 +2,7 @@ from mlagents_envs.environment import UnityEnvironment
 import numpy as np
 import torch
 from experience import Experience, Trajectory, Buffer
-from cnn import CNN
+from models import ActorCritic, ActorCriticLoss
 from agent import Agent
 
 
@@ -26,7 +26,7 @@ class Trainer:
             env.set_actions(agent.group, action)  # Set actions
             env.step()
             next_step_res = env.get_step_result(agent.group)
-            reward = next_step_res.reward  # Get reward
+            reward = next_step_res.reward[0]  # Get reward
             done = next_step_res.done[agent.index]  # Get done flag
             next_obs = next_step_res.get_agent_step_result(agent.num).obs[0]  # Get next observation
 
@@ -34,7 +34,7 @@ class Trainer:
 
         buffer: Buffer = []
         rewards = []
-        reset_environment()
+        env.reset()
 
         while len(buffer) < sample_size:
             trajectory: Trajectory = []
@@ -52,28 +52,35 @@ class Trainer:
         return buffer, np.sum(rewards) / len(buffer)
     
     @staticmethod
-    def update_q_network(q_net: CNN, optimizer: torch.optim, buffer: Buffer, n_epochs: int, batch_size: int, gamma: float):  # Training happens here
+    def update_network(net: ActorCritic, optimizer: torch.optim, buffer: Buffer, n_epochs: int, batch_size: int, gamma: float, criterion: ActorCriticLoss):  # Training happens here
 
         np.random.shuffle(buffer)  # Shuffle experiments in buffer
         batches = [buffer[batch_size * start: batch_size * (start + 1)] for start in range(int(len(buffer) / batch_size))]  # Partition in batches
         
-        for _ in range(n_epochs):
-            for batch in batches:
+        for i in range(n_epochs):
+            for j, batch in enumerate(batches):
                 # Create batch tensors for observations, reward, done, action and next observations
-                obs = torch.from_numpy(np.stack([ex.obs for ex in batch]))
+                obs = torch.from_numpy(np.stack([ex.obs for ex in batch])).permute(0, 3, 1, 2)  # Move channel dimension to second dim
                 reward = torch.from_numpy(np.array([ex.reward for ex in batch], dtype=np.float32).reshape(-1, 1))
                 done = torch.from_numpy(np.array([ex.done for ex in batch], dtype=np.float32).reshape(-1, 1))
-                action = torch.from_numpy(np.stack([ex.action for ex in batch]))
-                next_obs = torch.from_numpy(np.stack([ex.next_obs for ex in batch]))
+                action = torch.from_numpy(np.stack([ex.action for ex in batch])).squeeze(dim=1)  # Remove dimension 1
+                next_obs = torch.from_numpy(np.stack([ex.next_obs for ex in batch])).permute(0, 3, 1, 2)  # Move channel dimension
 
-                target = ...  # TODO: Compute target vector using Bellman equation
-                prediction = ...  # TODO: Compute prediction
+                # Following https://medium.com/@asteinbach/rl-introduction-simple-actor-critic-for-continuous-actions-4e22afb712
+                means_vec, vars_vec, td_vec = net(obs)
+                _, _, next_values = net(next_obs)
+                expected_td_vec = reward + gamma * next_values * (1 - done)
 
                 # Compute loss
-                criterion = torch.nn.MSELoss()
-                loss = criterion(prediction, target)
+                loss = criterion(means_vec, vars_vec, action, td_vec,expected_td_vec)
 
                 # Perform the backpropagation
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                print("Batch {} done".format(j))
+            print("Epoch {} done".format(i))
+
+
+# Notes for later:
+# - Standardize sequence of returns to stabilize training (https://www.tensorflow.org/tutorials/reinforcement_learning/actor_critic section 2 of training)
