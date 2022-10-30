@@ -35,3 +35,6 @@ class Agent:
         '''
         assert self.num + amount >= 0, "Number of the agent should not be negative."
         self.num += amount
+    
+    def load_model(self, path):
+        self.vision_decoder.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage))

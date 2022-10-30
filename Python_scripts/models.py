@@ -88,7 +88,9 @@ class ActorCritic(Module):
 
     def forward(self, observation):
         encoding = self.encoder(observation)
-        return self.actor_mean(encoding), self.actor_var(encoding), self.critic(encoding)
+        mean, var, td_err = self.actor_mean(encoding), self.actor_var(encoding), self.critic(encoding)
+        #print("[INSIDE AcotrCritic forward] means: {}, vars: {}, td_error: {}".format(mean, var, td_err))
+        return mean, var, td_err
 
 
 class ActorCriticLoss(Module):
@@ -97,6 +99,7 @@ class ActorCriticLoss(Module):
     
     def forward(self, means, vars, actions, td_val, expected_td):
         # Following https://www.tensorflow.org/tutorials/reinforcement_learning/actor_critic
+        #print("[INSIDE ActorCriticLoss] means: {}, vars: {}".format(means, vars))
         advantage = expected_td - td_val
         loss_actor = torch.sum(Normal(means, torch.sqrt(vars)).log_prob(actions) * advantage)
         loss_critic = HuberLoss()(td_val, expected_td)  # Huber loss is less sensitive to outliers than plain MSE

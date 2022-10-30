@@ -22,7 +22,7 @@ class Trainer:
         def get_next_experience():
             obs = env.get_step_result(agent.group).get_agent_step_result(agent.num).obs[0]  # Get observation. Not formatted as tensor!
             action = agent.get_action(obs)  # Get agent actions
-            # TODO: Add noise on agent actions. CAREFUL: respect constraints of action ranges!
+            action += np.random.randn(action.shape[0], action.shape[1]).astype(np.float32) * epsilon  # Add some random value to encourage exploration
             env.set_actions(agent.group, action)  # Set actions
             env.step()
             next_step_res = env.get_step_result(agent.group)
@@ -80,6 +80,9 @@ class Trainer:
                 optimizer.step()
                 print("Batch {} done".format(j))
             print("Epoch {} done".format(i))
+    
+    def save_network(net: ActorCritic, path: str):
+        torch.save(net.state_dict(), path)
 
 
 # Notes for later:

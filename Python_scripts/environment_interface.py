@@ -6,6 +6,7 @@ from experience import Buffer
 from typing import List
 from torch.optim import Adam
 import numpy as np
+from datetime import datetime
 
 
 class EnvironmentInterface:
@@ -73,7 +74,7 @@ class EnvironmentInterface:
         '''
         return self.agent_groups
 
-    def train(self, agent_index: int = 0, n_training_steps: int=10, lr: float=0.001, n_epochs: int=3, batch_size: int=32, gamma: float=0.9, n_new_exp: int=int(1e2), buffer_size:int=int(1e3), epsilon=0.1):  # TODO: increase default values for n_new_exp and buffer_size, I set them low now for testing
+    def train(self, agent_index: int=0, n_training_steps: int=10, lr: float=0.00001, n_epochs: int=3, batch_size: int=128, gamma: float=0.9, n_new_exp: int=int(1e4), buffer_size:int=int(1e5), epsilon=0.1):
         agent = self.agent_groups[agent_index]  # Train a specific agent group, by default the first one.
         optimizer = Adam(agent.vision_decoder.parameters(), lr=lr)  # Initialize optimizer
         criterion = ActorCriticLoss()
@@ -90,9 +91,26 @@ class EnvironmentInterface:
             _, mean_reward = Trainer.generate_trajectories(self.env, agent, 100, 0)  # Run new experiments and compute mean cumulative reward
             cumulative_rewards.append(mean_reward)  # Append cumulative reward to list of cumulative rewards
             print("Training step ", n+1, "\treward ", mean_reward)  # Print some feedback
+        
+        date = datetime.now().strftime("%d%m%Y_%H%M%S")
+        filename = "{}_agent_{}_trainsteps_{}_lr_{}_epochs_{}_batchsize_{}_gamma_{}_eps_{}".format(date, agent_index, n_training_steps, lr, n_epochs, batch_size, gamma, epsilon)
+        self.save_model(agent_index, filename)
+
+        return cumulative_rewards
+
+
+    def save_model(self, agent_index: int, filename: str, folder: str="./models/", extension: str=".pth"):
+        agent = self.agent_groups[agent_index]
+        model = agent.vision_decoder
+        path = folder + filename + extension
+        Trainer.save_network(model, path)
 
     def run_steps(self, num_steps = 10):
         assert self.env is not None, "Env is not loaded, call load_env() first."
         # Just for testing, will be removed afterwards
         for _ in range(num_steps):
             self.loop()
+
+    def load_agent_model(self, path: str, agent_index: int=0):
+        agent = self.agent_groups[agent_index]
+        agent.load_model(path)
