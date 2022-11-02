@@ -1,4 +1,4 @@
-from turtle import forward
+from turtle import end_fill, forward
 from typing import Tuple
 import torch
 from torch.nn import Conv2d, ReLU, Linear, Module, Sequential, Sigmoid, HuberLoss
@@ -80,11 +80,27 @@ class ActorCritic(Module):
 
         super().__init__()
 
+        intermediate = int(encoding_size/2)
+
         self.encoder = CNN(input_shape, encoding_size)
 
-        self.actor_mean = Sequential(Linear(encoding_size, actions_size), FinalActivation(actions_size, tanh_positions, sigmoid_positions, relu_positions))  # Mean for each action possible, must be in the range constraints for the different actions
-        self.actor_var = Sequential(Linear(encoding_size, actions_size), Sigmoid())  # Var for each action possible, can only be positive and I want to have it rather small since final actions should ideally remain in their mean range, therefore I use sigmoid to constraint it between 0 and 1.
-        self.critic = Linear(encoding_size, 1)  # TD-error computed by the critic
+        self.actor_mean = Sequential(
+            Linear(encoding_size, intermediate), 
+            Sigmoid(), 
+            Linear(intermediate, actions_size), 
+            FinalActivation(actions_size, tanh_positions, sigmoid_positions, relu_positions)
+            )  # Mean for each action possible, must be in the range constraints for the different actions
+        self.actor_var = Sequential(
+            Linear(encoding_size, intermediate), 
+            Sigmoid(),
+            Linear(intermediate, actions_size), 
+            Sigmoid()
+            )  # Var for each action possible, can only be positive and I want to have it rather small since final actions should ideally remain in their mean range, therefore I use sigmoid to constraint it between 0 and 1.
+        self.critic = Sequential(
+            Linear(encoding_size, intermediate),
+            Sigmoid(),
+            Linear(intermediate, 1)
+            )  # Estimated TD-error computed by the critic
 
     def forward(self, observation):
         encoding = self.encoder(observation)
