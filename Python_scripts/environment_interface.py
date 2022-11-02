@@ -75,6 +75,9 @@ class EnvironmentInterface:
         return self.agent_groups
 
     def train(self, agent_index: int=0, n_training_steps: int=10, lr: float=0.00001, n_epochs: int=3, batch_size: int=128, gamma: float=0.9, n_new_exp: int=int(1e4), buffer_size:int=int(1e5), epsilon=0.1):
+        run_id = datetime.now().strftime("%d%m%Y_%H%M%S")  # Unique identifier for this training run
+        logs_path = "./logs/"
+
         agent = self.agent_groups[agent_index]  # Train a specific agent group, by default the first one.
         optimizer = Adam(agent.vision_decoder.parameters(), lr=lr)  # Initialize optimizer
         criterion = ActorCriticLoss()
@@ -87,16 +90,15 @@ class EnvironmentInterface:
                 keep = np.random.choice(len(buffer), buffer_size - n_new_exp)  # Select (buffer_size - n_new_exp) experiments from buffer to keep
                 buffer = buffer[keep]
             buffer.extend(new_exp)  # Add new ones to buffer
-            Trainer.update_network(agent.vision_decoder, optimizer, buffer, n_epochs, batch_size, gamma, criterion)  # Update network using trainer
+            Trainer.update_network(agent.vision_decoder, optimizer, buffer, n_epochs, batch_size, gamma, criterion, run_id, logs_path, n)  # Update network using trainer
             _, mean_reward = Trainer.generate_trajectories(self.env, agent, 100, 0)  # Run new experiments and compute mean cumulative reward
             cumulative_rewards.append(mean_reward)  # Append cumulative reward to list of cumulative rewards
             print("Training step ", n+1, "\treward ", mean_reward)  # Print some feedback
         
-        date = datetime.now().strftime("%d%m%Y_%H%M%S")
-        filename = "{}_agent_{}_trainsteps_{}_lr_{}_epochs_{}_batchsize_{}_gamma_{}_eps_{}".format(date, agent_index, n_training_steps, lr, n_epochs, batch_size, gamma, epsilon)
+        filename = "{}_agent_{}_trainsteps_{}_lr_{}_epochs_{}_batchsize_{}_gamma_{}_eps_{}".format(run_id, agent_index, n_training_steps, lr, n_epochs, batch_size, gamma, epsilon)
         self.save_model(agent_index, filename)
 
-        return cumulative_rewards
+        return cumulative_rewards, filename
 
 
     def save_model(self, agent_index: int, filename: str, folder: str="./models/", extension: str=".pth"):

@@ -22,7 +22,7 @@ class Trainer:
         def get_next_experience():
             obs = env.get_step_result(agent.group).get_agent_step_result(agent.num).obs[0]  # Get observation. Not formatted as tensor!
             action = agent.get_action(obs)  # Get agent actions
-            action += np.random.randn(action.shape[0], action.shape[1]).astype(np.float32) * epsilon  # Add some random value to encourage exploration
+            action += np.random.randn(action.shape[0], action.shape[1]).astype(np.float32) * epsilon  # Add some random value to encourage exploration  # TODO: should I instead add on the means and variances (and making sure variance remains above 0 then)?
             env.set_actions(agent.group, action)  # Set actions
             env.step()
             next_step_res = env.get_step_result(agent.group)
@@ -52,7 +52,38 @@ class Trainer:
         return buffer, np.sum(rewards) / len(buffer)
     
     @staticmethod
-    def update_network(net: ActorCritic, optimizer: torch.optim, buffer: Buffer, n_epochs: int, batch_size: int, gamma: float, criterion: ActorCriticLoss):  # Training happens here
+    def update_network(net: ActorCritic, optimizer: torch.optim, buffer: Buffer, n_epochs: int, batch_size: int, gamma: float, criterion: ActorCriticLoss, run_id, logs_path: str, train_step_index: int):  # Training happens here
+
+        # Some logging helper functions
+        def log_loss_and_layers(logs_path, run_id, loss_tensor: torch.Tensor, net: ActorCritic, epoch: int, batch: int, loss_filename: str ="loss", layers_filename="layers"):
+            # Open and write to file:
+            # - Training step, epoch, batch
+            # - loss
+            # - torch.isnan(loss)
+            # - layer.name, torch.isnan(layer.weight) and torch.isnan(layer.bias) for every layer
+
+            header = "Training step {}, epoch {}, batch {}".format(train_step_index, epoch, batch)
+
+            loss_path = logs_path + "{}_{}.txt".format(run_id, loss_filename)
+            loss_data = [
+                header,
+                str(loss.numpy()),
+                str(torch.isnan(loss).numpy())
+            ]
+            append_lines_to_file(loss_path, loss_data)
+
+            layers_path = logs_path + "{}_{}.txt".format(run_id, layers_filename)
+            layers_data = [header]
+            for module in net.modules():
+                if not isinstance(module, torch.nn.Sequential):
+                    ...
+            append_lines_to_file(layers_path, layers_data)
+
+        def append_lines_to_file(path, data):
+            with open(path, "a+") as f:
+                f.write('\n')
+                f.write('\n'.join(data))
+                f.write('\n')
 
         np.random.shuffle(buffer)  # Shuffle experiments in buffer
         batches = [buffer[batch_size * start: batch_size * (start + 1)] for start in range(int(len(buffer) / batch_size))]  # Partition in batches
@@ -78,11 +109,16 @@ class Trainer:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                print("Batch {} done".format(j))
+                
+                #print("Batch {} done".format(j))
             print("Epoch {} done".format(i))
     
+    @staticmethod
     def save_network(net: ActorCritic, path: str):
         torch.save(net.state_dict(), path)
+
+
+    # If cannot identify source of error here, check if visual input received from unity contains any NaNs!
 
 
 # Notes for later:
