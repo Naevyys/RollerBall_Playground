@@ -1,4 +1,3 @@
-from turtle import end_fill, forward
 from typing import Tuple
 import torch
 from torch.nn import Conv2d, ReLU, Linear, Module, Sequential, Sigmoid, HuberLoss
