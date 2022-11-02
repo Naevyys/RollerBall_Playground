@@ -5,6 +5,7 @@ from stable_baselines3.common.monitor import Monitor
 #from stable_baselines3.common.env_checker import check_env
 import os, pickle
 import numpy as np
+from models import CNN
 
 
 def make_env(path_to_exec:str, log_dir:str="./logs/", worker_id:int=0, no_graphics:bool=True):
@@ -17,9 +18,13 @@ def make_env(path_to_exec:str, log_dir:str="./logs/", worker_id:int=0, no_graphi
     return env
 
 def make_model(env: UnityEnv, verbose:int=1):
-    return A2C(ActorCriticCnnPolicy, env, verbose=verbose)
+    policy_kwargs = dict(
+        features_extractor_class=CNN,
+        features_extractor_kwargs=dict(features_dim=32)
+    )  # Use a custom CNN instead of the NatureCNN of stable_baseline3
+    return A2C(ActorCriticCnnPolicy, env, verbose=verbose, policy_kwargs=policy_kwargs)
 
-def train_model(model:A2C, env:UnityEnv, model_dir:str="./models/", log_dir:str="./logs/", episodes:int=3, timesteps:int=1000):
+def train_model(model:A2C, env:UnityEnv, model_dir:str="./models/", log_dir:str="./logs/", episodes:int=50, timesteps:int=10000):
     # Note that the library is directly taking the observations and pre-processing them following standard procedures for images (e.g. standardize)
     model.learn(total_timesteps=timesteps)
     model.save(model_dir)
