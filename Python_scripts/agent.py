@@ -1,10 +1,10 @@
 import torch
 import numpy as np
-from cnn import CNN
+from models import ActorCritic
 
 
 class Agent:
-    def __init__(self, num: int, group, group_specs, vision_decoder: CNN = None) -> None:  # TODO: change vision_decoder
+    def __init__(self, num: int, group, group_specs, vision_decoder: ActorCritic = None) -> None:
         '''
         Initialize the agent with identifiers and its vision decoder.
         '''
@@ -25,14 +25,9 @@ class Agent:
             return np.random.rand(action_size).reshape((1,-1))
 
         observations_formatted = torch.tensor(observations).permute(2, 0, 1).float()  # Convert to tensor, move channels to first dim
-        predictions = self.vision_decoder(observations_formatted)
-        # Make additional computations here in order to cover entire range required (e.g. [-1, 1]) by using the predictions between [0, 1]
-        return predictions.detach().numpy()
-
-    def update_decoder(self):
-        # Do a gradient step to update the cnn
-        # Might be better to do that from the trainer directly
-        raise NotImplementedError
+        means_vec, vars_vec, _ = self.vision_decoder(observations_formatted)
+        actions = torch.normal(means_vec.detach(), torch.sqrt(vars_vec.detach()))  # Sample actions using means and stds
+        return actions.numpy()
     
     def increment_agent_num(self, amount = 1):
         '''
@@ -40,3 +35,6 @@ class Agent:
         '''
         assert self.num + amount >= 0, "Number of the agent should not be negative."
         self.num += amount
+    
+    def load_model(self, path):
+        self.vision_decoder.load_state_dict(torch.load(path, map_location=lambda storage, loc: storage))
