@@ -2,7 +2,7 @@ from gym_unity.envs import UnityEnv, spaces
 from stable_baselines3 import A2C
 from stable_baselines3.common.policies import ActorCriticCnnPolicy
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.env_checker import check_env
+#from stable_baselines3.common.env_checker import check_env
 import os, pickle
 import numpy as np
 
@@ -19,7 +19,7 @@ def make_env(path_to_exec:str, log_dir:str="./logs/", worker_id:int=0, no_graphi
 def make_model(env: UnityEnv, verbose:int=1):
     return A2C(ActorCriticCnnPolicy, env, verbose=verbose)
 
-def train_model(model:A2C, env:UnityEnv, model_dir:str="./models/", log_dir:str="./logs/", episodes:int=3, timesteps:int=100):
+def train_model(model:A2C, env:UnityEnv, model_dir:str="./models/", log_dir:str="./logs/", episodes:int=3, timesteps:int=1000):
     # Note that the library is directly taking the observations and pre-processing them following standard procedures for images (e.g. standardize)
     model.learn(total_timesteps=timesteps)
     model.save(model_dir)

@@ -41,7 +41,7 @@ public class RollerAgent : Agent
         // Actions, size = 2 (first is for movement, second for rotation)
 
         // Move
-        Vector3 controlSignalMovement = (Vector3.forward * vectorAction[0]);
+        Vector3 controlSignalMovement = (Vector3.forward * (vectorAction[0] + 1) / 2);
         rBody.transform.Translate(controlSignalMovement * speed * Time.deltaTime);  // Translate is relative to Space.Self by default, so need to use Vector3.forward...
 
         // Turn
