@@ -18,11 +18,11 @@ def make_env(path_to_exec:str, log_dir:str="./logs/", worker_id:int=0, no_graphi
     return env
 
 def make_model(env: UnityEnv, verbose:int=1):
-    policy_kwargs = dict(
-        features_extractor_class=CNN,
-        features_extractor_kwargs=dict(features_dim=32)
-    )  # Use a custom CNN instead of the NatureCNN of stable_baseline3
-    return A2C(ActorCriticCnnPolicy, env, verbose=verbose, policy_kwargs=policy_kwargs)
+    #policy_kwargs = dict(
+    #    features_extractor_class=CNN,
+    #    features_extractor_kwargs=dict(features_dim=32)
+    #)  # Use a custom CNN instead of the NatureCNN of stable_baseline3
+    return A2C(ActorCriticCnnPolicy, env, verbose=verbose, n_steps=64)#, policy_kwargs=policy_kwargs)
 
 def train_model(model:A2C, env:UnityEnv, model_dir:str="./models/", log_dir:str="./logs/", episodes:int=50, timesteps:int=10000):
     # Note that the library is directly taking the observations and pre-processing them following standard procedures for images (e.g. standardize)
@@ -52,3 +52,15 @@ def train_model(model:A2C, env:UnityEnv, model_dir:str="./models/", log_dir:str=
     with open('{}_eval.pkl'.format(log_dir), 'wb') as f:
         pickle.dump(episode_rewards, f)
         pickle.dump(episode_lengths, f)
+
+def load_model(name:str, env:UnityEnv, model_dir:str="./models/"):
+    return A2C.load(os.path.join(model_dir, name), env=env)
+
+def run_model(env:UnityEnv, model:A2C, n_steps:int=1000):
+    obs = env.reset()
+    for i in range(n_steps):
+        action, _states = model.predict(obs, deterministic=True)
+        obs, rewards, dones, info = env.step(action)
+        env.render()
+        if dones:
+            obs = env.reset()

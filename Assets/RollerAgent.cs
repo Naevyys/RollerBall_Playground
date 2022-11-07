@@ -54,14 +54,14 @@ public class RollerAgent : Agent
         // Reached target
         if (distanceToTarget < 1.42f)
         {
-            SetReward(1.0f);
+            SetReward(10.0f);
             Done();
         }
 
         // Fell off platform
         if (this.transform.position.y < 0)
         {
-            SetReward(-1.0f);  // Negative reward  if it falls down the platform
+            SetReward(-10.0f);  // Negative reward  if it falls down the platform
             Done();
         }
 
