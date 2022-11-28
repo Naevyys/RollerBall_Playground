@@ -41,7 +41,7 @@ public class RollerAgent : Agent
         // Actions, size = 2 (first is for movement, second for rotation)
 
         // Move
-        Vector3 controlSignalMovement = (Vector3.forward * (vectorAction[0] + 1) / 2);
+        Vector3 controlSignalMovement = Vector3.forward * Mathf.Abs(vectorAction[0]);  // (Vector3.forward * (vectorAction[0] + 1) / 2);  // rescales input vector (0, 0, 0) to (1/2, 1/2, 1/2) creating a constant forward movement...
         rBody.transform.Translate(controlSignalMovement * speed * Time.deltaTime);  // Translate is relative to Space.Self by default, so need to use Vector3.forward...
 
         // Turn
@@ -54,14 +54,14 @@ public class RollerAgent : Agent
         // Reached target
         if (distanceToTarget < 1.42f)
         {
-            SetReward(10.0f);
+            SetReward(1.0f);
             Done();
         }
 
         // Fell off platform
         if (this.transform.position.y < 0)
         {
-            SetReward(-10.0f);  // Negative reward  if it falls down the platform
+            SetReward(-1.0f);  // Negative reward  if it falls down the platform
             Done();
         }
 
