@@ -76,5 +76,10 @@ crashlytics-build.properties
 Python_scripts/Colab_scripts
 Python_scripts/Colab_scripts*
 Python_scripts/dlcliverender*
-Python_scripts/sandbox*
-Python_scripts/__pycache__
+**/sandbox*
+**/__pycache__
+Stable_baselines_scripts/trained_models
+Builds_stable_baselines
+
+# Notes:
+# - For now, I am gitignoring the stable baselines3 models cause I train a lot of dummy models to test my code. Later I might remove it from the gitignore
