@@ -78,8 +78,7 @@ Python_scripts/Colab_scripts*
 Python_scripts/dlcliverender*
 **/sandbox*
 **/__pycache__
-Stable_baselines_scripts/logs
-Stable_baselines_scripts/models
+Stable_baselines_scripts/trained_models
 Builds_stable_baselines
 
 # Notes:
