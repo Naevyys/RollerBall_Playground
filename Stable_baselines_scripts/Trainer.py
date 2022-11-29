@@ -30,6 +30,7 @@ class Trainer(object):
         # Init env
         env = UnityEnv(env_exec, worker_id=worker_id, use_visual=True, uint8_visual=True, no_graphics=no_graphics)  # no_graphics=True to avoid popping the unity view
         self.env = Monitor(env, self.env_log_dir, allow_early_resets=True)
+        # check_env(self.env)  # Check wheather my unity environment follows the Gym API. See https://stable-baselines3.readthedocs.io/en/master/common/env_checker.html (*)
 
         # Init model
         self.model = self.model_class(policy_class, env, tensorboard_log=self.training_log_dir, **model_init_params)
@@ -62,3 +63,6 @@ class Trainer(object):
     
     def close_env(self):
         self.env.close()
+
+
+# (*) This check_env function always interrupts my code because it says my reward is not of type float, but I checked manually and the reward is a numpy.float32, which indeed does not pass the assertion isinstance(reward, (int, float)). However, since this assertion fails, I don't know if there are any further issues with my custom environment.
