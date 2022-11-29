@@ -79,6 +79,7 @@ Python_scripts/dlcliverender*
 **/sandbox*
 **/__pycache__
 Stable_baselines_scripts/trained_models
+Stable_baselines_scripts/gpu_setup_tests
 Builds_stable_baselines
 
 # Notes:

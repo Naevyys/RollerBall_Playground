@@ -15,7 +15,7 @@ default:  # Look at https://github.com/Unity-Technologies/ml-agents/blob/main/do
     num_layers: 2
     time_horizon: 64
     sequence_length: 64
-    summary_freq: 5000  # Modified
+    summary_freq: 100  # Modified
     use_recurrent: false
     vis_encode_type: nature_cnn  # Modified, was simple before
     reward_signals:
