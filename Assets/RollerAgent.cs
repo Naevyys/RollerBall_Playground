@@ -29,11 +29,19 @@ public class RollerAgent : Agent
         Target.position = target_initial_position;  // Reset target tp initial position
         this.transform.position = initial_position;  // Reset agent to initial position
         this.transform.rotation = initial_rotation;  // Reset agent to initial rotation
+
+        // Set initial side channel information when agent is reset
+        var sharedProperties = Academy.Instance.FloatProperties;
+        sharedProperties.SetProperty("agent_position_x", this.transform.position.x);
+        sharedProperties.SetProperty("agent_position_z", this.transform.position.z);
     }
 
     public override void CollectObservations()
     {
-
+        // Update side channel information whenever we call for observations
+        var sharedProperties = Academy.Instance.FloatProperties;
+        sharedProperties.SetProperty("agent_position_x", this.transform.position.x);
+        sharedProperties.SetProperty("agent_position_z", this.transform.position.z);
     }
 
     public override void AgentAction(float[] vectorAction)
